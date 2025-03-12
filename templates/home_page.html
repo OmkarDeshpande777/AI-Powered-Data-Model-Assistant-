@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to DataVerse</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --netflix-red: #E50914;
+            --netflix-black: #141414;
+            --netflix-dark-gray: #222222;
+            --netflix-white: #FFFFFF;
+            --netflix-hover-red: #b52229;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease-in-out;
+        }
+
+        body {
+            background: var(--netflix-black);
+            color: var(--netflix-white);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 20%, transparent);
+            padding: 1rem 6rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .navbar.scrolled {
+            background: var(--netflix-black);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--netflix-white);
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--netflix-red);
+            transform: scale(1.08);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--netflix-red);
+            transition: width 0.3s ease-in-out;
+            border-radius: 2px;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--netflix-red);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 120px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+            color: var(--netflix-white);
+        }
+
+        h4 {
+            font-size: 17px;
+            margin-top: 0;
+            color: var(--netflix-white);
+            opacity: 0.9;
+        }
+
+        .section-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            padding: 0 20px;
+        }
+
+        .section {
+            background-color: var(--netflix-dark-gray);
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 150px;
+            height: 180px;
+            padding-top: 45px;
+        }
+
+        .section:hover {
+            transform: scale(1.05);
+            border-color: var(--netflix-red);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+        }
+
+        .section h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--netflix-white);
+        }
+
+        .section p {
+            font-size: 16px;
+            color: #ddd;
+            flex-grow: 1;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--netflix-white);
+        }
+
+        /* User Guide Section */
+        .user-guide {
+            margin: 100px auto;
+            padding: 50px;
+            text-align: left;
+            max-width: 800px;
+            border-radius: 10px;
+            background-color: var(--netflix-dark-gray);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .user-guide:hover {
+            border-color: var(--netflix-red);
+            transform: translateY(-5px);
+        }
+
+        .user-guide h2 {
+            text-align: center;
+            color: var(--netflix-white);
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .user-guide ol {
+            padding-left: 20px;
+            font-size: 18px;
+        }
+
+        .user-guide li {
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        .user-guide li strong {
+            color: var(--netflix-red);
+        }
+
+        .scroll-btn {
+            display: inline-block;
+            margin-top: 30px;
+            font-size: 16px;
+            color: var(--netflix-white);
+            background-color: var(--netflix-red);
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .scroll-btn:hover {
+            background-color: var(--netflix-hover-red);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .section-container {
+                padding: 0 10px;
+            }
+
+            .section {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .user-guide {
+                margin: 50px 20px;
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}" class="nav-link active">Home</a>
+            <a href="{{ url_for('data_cleaning') }}" class="nav-link">Data Cleaning</a>
+            <a href="{{ url_for('visualization_insights') }}" class="nav-link">Visualization & Insights</a>
+            <a href="{{ url_for('model_recommendation') }}" class="nav-link">Model Recommendation</a>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <h1>Welcome to DataVerse</h1>
+        <h4>An AI Powered Data & Model Assistant</h4>
+
+        <div class="section-container">
+            <a href="{{ url_for('data_cleaning') }}">
+                <div class="section">
+                    <h2>Data Cleaning</h2>
+                    <p>Upload, clean and refine datasets with ease.</p>
+                </div>
+            </a>
+            <a href="{{ url_for('visualization_insights') }}">
+                <div class="section">
+                    <h2>Visualization & Insights</h2>
+                    <p>Generate visualizations and derive insights from your data.</p>
+                </div>
+            </a>
+            <a href="{{ url_for('model_recommendation') }}">
+                <div class="section">
+                    <h2>Model Recommendation & Tuning</h2>
+                    <p>Get AI model suggestions and fine-tune them.</p>
+                </div>
+            </a>
+        </div>
+
+        <BR><BR><BR><button class="scroll-btn" onclick="scrollToGuide()">How to Use DataVerse?</button><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+
+        <div class="user-guide" id="user-guide">
+            <h2>How to Use DataVerse?</h2>
+            <ol>
+                <li><strong>Data Cleaning:</strong> Click on the "Data Cleaning" button and upload your dataset (.csv file). Choose the columns to remove and download the cleaned file.</li>
+                <li><strong>Visualization & Insights:</strong> Upload your dataset and generate graphical representations of the data for easy analysis.</li>
+                <li><strong>Model Recommendation & Tuning:</strong> Receive AI model recommendations based on your dataset and fine-tune parameters for better performance.</li>
+                <li><strong>Navigation:</strong> Use the back button on each page to return to the home screen.</li>
+                <li><strong>Download Results:</strong> After each step, you can download your processed dataset or insights.</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll to user guide
+        function scrollToGuide() {
+            document.getElementById("user-guide").scrollIntoView({ behavior: "smooth" });
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customize Graph</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --netflix-red: #E50914;
+      --netflix-black: #141414;
+      --netflix-dark-gray: #222222;
+      --netflix-white: #FFFFFF;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Roboto, sans-serif;
+      background-color: var(--netflix-black);
+      color: var(--netflix-white);
+    }
+
+    /* Navigation Bar Styles */
+    .navbar {
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 20%, transparent);
+      padding: 1rem 6rem;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 80px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+    
+    .navbar.scrolled {
+      background: var(--netflix-black);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      align-items: center;
+    }
+    
+    .nav-link {
+      text-decoration: none;
+      color: var(--netflix-white);
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 0.8rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.3s ease-in-out;
+      letter-spacing: 1px;
+      position: relative;
+    }
+    
+    .nav-link:hover {
+      color: var(--netflix-red);
+      transform: scale(1.08);
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 3px;
+      background: var(--netflix-red);
+      transition: width 0.3s ease-in-out;
+      border-radius: 2px;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    .nav-link.active {
+      color: var(--netflix-red);
+    }
+    
+    .nav-link.active::after {
+      width: 100%;
+    }
+
+    /* Main Content Styles */
+    .main-content {
+      padding-top: 100px;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+
+      .navbar {
+        padding: 0.5rem 1rem;
+      }
+
+      .nav-links {
+        gap: 1rem;
+      }
+
+      .nav-link {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+      }
+    }
+
+    .chart-view {
+      flex: 3;
+      background-color: #1f1f1f;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: auto;
+    }
+
+    .customization {
+      flex: 1;
+      background-color: #1f1f1f;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+    }
+
+    .customization h2 {
+      color: var(--netflix-red);
+    }
+
+    select, button, input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      background-color: #2f2f2f;
+      color: var(--netflix-white);
+      border: 1px solid #666;
+      border-radius: 0.5rem;
+    }
+
+    button {
+      background-color: var(--netflix-red);
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #d10812;
+    }
+
+    canvas {
+      background-color: var(--netflix-white);
+      border-radius: 0.5rem;
+    }
+
+    .graph-container {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1rem;
+    }
+
+    .insight-box {
+      flex: 1;
+      background-color: #2f2f2f;
+      color: var(--netflix-white);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    .chart-canvas {
+      flex: 2;
+      max-width: 60%;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-links">
+      <a href="{{ url_for('home') }}" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">
+        Home
+      </a>
+      <a href="{{ url_for('data_cleaning') }}" class="nav-link {% if request.endpoint == 'data_cleaning' %}active{% endif %}">
+        Data Cleaning
+      </a>
+      <a href="{{ url_for('visualization_insights') }}" class="nav-link {% if request.endpoint == 'visualization_insights' %}active{% endif %}">
+        Visualization & Insights
+      </a>
+      <a href="{{ url_for('model_recommendation') }}" class="nav-link {% if request.endpoint == 'model_recommendation' %}active{% endif %}">
+        Model Recommendation
+      </a>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="container">
+      <div class="chart-view" id="chartContainer">
+        <h2>Generated Graphs</h2>
+      </div>
+
+      <div class="customization">
+        <h2>Customize Chart</h2>
+        <form id="chartForm">
+          <input type="hidden" id="cleaned_filepath" name="cleaned_filepath" value="{{ cleaned_filepath }}">
+
+          <h3>Chart Type</h3>
+          <select id="chartType">
+            <option value="line">Line Chart</option>
+            <option value="bar">Bar Chart</option>
+            <option value="pie">Pie Chart</option>
+            <option value="area">Area Chart</option>
+          </select>
+
+          <h3>X-Axis</h3>
+          <select id="x-axis" name="x_axis">
+            {% for col in columns %}
+              <option value="{{ col }}">{{ col }}</option>
+            {% endfor %}
+          </select>
+
+          <h3>Y-Axis</h3>
+          <select id="y-axis" name="y_axis">
+            {% for col in columns %}
+              <option value="{{ col }}">{{ col }}</option>
+            {% endfor %}
+          </select>
+          <br><br>
+          <h3>Select Range</h3>
+          <br> <label for="start-year">Start Range (X-axis)</label>
+          <input type="number" id="start-year" placeholder="Enter start range"> <br>
+          
+          <br> <label for="end-year">End Range (X-axis)</label>
+          <input type="number" id="end-year" placeholder="Enter end range">
+          
+          <button type="button" onclick="generateChart()">Generate Chart</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Add navbar scroll effect
+    window.addEventListener('scroll', function() {
+      const navbar = document.querySelector('.navbar');
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+
+    // Your existing chart generation code
+    async function generateChart() {
+      const xAxis = document.getElementById('x-axis').value;
+      const yAxis = document.getElementById('y-axis').value;
+      let chartType = document.getElementById('chartType').value;
+      const filepath = document.getElementById('cleaned_filepath').value;
+      const startYear = document.getElementById('start-year').value;
+      const endYear = document.getElementById('end-year').value;
+  
+      if (chartType === "area") {
+          chartType = "line"; // Convert area chart to line chart
+      }
+  
+      const requestData = {
+          cleaned_filepath: filepath, 
+          x_col: xAxis, 
+          y_col: yAxis, 
+          chart_type: chartType, 
+          start_year: startYear, 
+          end_year: endYear
+      };
+  
+      console.log("Sending request:", requestData); // Debugging log
+  
+      try {
+          const response = await fetch('/generate_chart', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestData)
+          });
+  
+          const data = await response.json();
+          if (!response.ok) {
+              throw new Error(data.error || "Failed to generate chart");
+          }
+  
+          console.log("Received response:", data); // Debugging log
+  
+          renderChart(data, chartType, yAxis);
+      } catch (error) {
+          console.error("Error:", error);
+          alert("Error generating chart: " + error.message);
+      }
+  }
+      
+      // ... [Your existing generateChart function code remains the same]
+    
+
+    function renderChart(data, chartType, yAxis) {
+      const chartContainer = document.getElementById('chartContainer');
+
+    // Create a new graph and insights section
+    const graphDiv = document.createElement('div');
+    graphDiv.classList.add('graph-container');
+
+    const canvasDiv = document.createElement('div');
+    canvasDiv.classList.add('chart-canvas');
+    const canvas = document.createElement('canvas');
+    canvasDiv.appendChild(canvas);
+
+    const insightBox = document.createElement('div');
+    insightBox.classList.add('insight-box');
+    insightBox.innerHTML = '<strong>Insights:</strong><p>' + (data.insights || "No insights available.") + '</p>';
+
+    graphDiv.appendChild(canvasDiv);
+    graphDiv.appendChild(insightBox);
+    chartContainer.appendChild(graphDiv);
+
+    new Chart(canvas.getContext('2d'), {
+        type: chartType,
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: yAxis,
+                data: data.values,
+                backgroundColor: chartType === 'pie' ? ['#E50914', '#FFA500', '#32CD32', '#4169E1', '#8A2BE2'] : '#E50914',
+                borderColor: '#E50914', // Red line
+                borderWidth: 2,
+                fill: false, // Remove area under line chart
+                pointBackgroundColor: '#E50914' // Red dots
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItem) {
+                            return tooltipItem[0].label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+} 
+      // ... [Your existing renderChart function code remains the same]
+    
+  </script>
+</body>
+</html>
+
+

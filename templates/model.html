@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Model Recommender</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --netflix-red: #E50914;
+            --netflix-black: #141414;
+            --netflix-dark-gray: #222222;
+            --netflix-white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Arial', sans-serif; 
+            text-align: center; 
+            background: var(--netflix-black);
+            color: var(--netflix-white);
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Navigation Bar Styles */
+        .navbar {
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 20%, transparent);
+            padding: 1rem 6rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 80px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .navbar.scrolled {
+            background: var(--netflix-black);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: var(--netflix-white);
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+            letter-spacing: 1px;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: var(--netflix-red);
+            transform: scale(1.08);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--netflix-red);
+            transition: width 0.3s ease-in-out;
+            border-radius: 2px;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .nav-link.active {
+            color: var(--netflix-red);
+        }
+        
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-top: 88px;
+            padding: 2rem;
+        }
+
+        .container { 
+            max-width: 800px; 
+            margin: auto; 
+            background: #1a1a1a; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1); 
+        }
+
+        .hidden { display: none; }
+        
+        pre { 
+            text-align: left; 
+            background: #282c34; 
+            color: #abb2bf; 
+            padding: 15px; 
+            border-radius: 5px; 
+            white-space: pre-wrap; 
+            word-wrap: break-word; 
+            overflow-x: auto; 
+        }
+
+        .model-box {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 20px;
+            align-items: center;
+            background: #282c34;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .model-box.selected {
+            border-color: var(--netflix-red);
+        }
+
+        .model-name {
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #444;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--netflix-red);
+            transition: width 0.3s ease;
+        }
+
+        .hyperparameter-container { 
+            margin-top: 20px; 
+            text-align: left; 
+            background: #282c34;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .hyperparameter-container label { 
+            display: block; 
+            margin-top: 10px; 
+            color: #abb2bf;
+        }
+
+        .hyperparameter-container input { 
+            width: 100%; 
+            padding: 8px; 
+            margin-top: 5px; 
+            background: #1a1a1a;
+            border: 1px solid var(--netflix-red);
+            color: white;
+            border-radius: 3px;
+        }
+
+        .btn-primary {
+            background: var(--netflix-red);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .btn-primary:hover {
+            background: #b52229;
+        }
+
+        .btn-secondary {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .nav-link {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .container {
+                width: 90%;
+            }
+
+            .customPrompt{
+                width: 150px;
+                height: 1000px;
+            }
+
+            
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">
+                Home
+            </a>
+            <a href="{{ url_for('data_cleaning') }}" class="nav-link {% if request.endpoint == 'data_cleaning' %}active{% endif %}">
+                Data Cleaning
+            </a>
+            <a href="{{ url_for('visualization_insights') }}" class="nav-link {% if request.endpoint == 'visualization_insights' %}active{% endif %}">
+                Visualization & Insights
+            </a>
+            <a href="{{ url_for('model_recommendation') }}" class="nav-link {% if request.endpoint == 'model_recommendation' %}active{% endif %}">
+                Model Recommendation
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <h2>Upload Your Dataset</h2>
+            <input type="file" id="fileInput" accept=".csv">
+            <button class="btn-primary" onclick="uploadFile()">Upload</button>
+
+            <div id="recommendations" class="hidden">
+                <h3>Top 3 Recommended Models</h3>
+                <div id="modelSelection"></div>
+                <button class="btn-primary" onclick="generateCode()">Generate Code</button>
+            </div>
+
+            <div id="codeContainer" class="hidden">
+                <h3>Generated Code</h3>
+                <pre id="generatedCode"></pre>
+                <button class="btn-secondary" onclick="copyCode()">
+                    <i class="fas fa-copy"></i> Copy Code
+                </button>
+                
+        </div>
+    </div>
+    <br>
+    <div id="customPromptContainer">
+        <h3>Custom Prompt ( Optional )</h3>
+        <br>
+        <textarea id="customPrompt" placeholder="Enter Prompt"></textarea>
+    </div>
+    <br>
+  
+</div>
+</div>
+</div>
+    <script>
+        // Your existing JavaScript code remains the same
+        let selectedModel = null;
+let defaultHyperparameters = {
+    "RandomForest": { "n_estimators": 100, "max_depth": null, "min_samples_split": 2, "min_samples_leaf": 1 },
+    "SVM": { "C": 1.0, "kernel": "rbf", "gamma": "scale" },
+    "NeuralNetwork": { "epochs": 50, "learning_rate": 0.001, "batch_size": 32, "hidden_layers": "64,32" },
+    "XGBoost": { "n_estimators": 100, "max_depth": 6, "learning_rate": 0.1, "subsample": 1.0 },
+    "LogisticRegression": { "C": 1.0, "solver": "lbfgs" },
+    "KNN": { "n_neighbors": 5, "weights": "uniform" },
+    "GradientBoosting": { "n_estimators": 100, "learning_rate": 0.1, "max_depth": 3 },
+    "DecisionTree": { "criterion": "gini", "max_depth": null }
+};
+
+// Add navbar scroll effect
+window.addEventListener('scroll', function() {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+    } else {
+        navbar.classList.remove('scrolled');
+    }
+});
+
+function uploadFile() {
+    let file = document.getElementById('fileInput').files[0];
+    if (!file) return alert('Please select a file');
+
+    let formData = new FormData();
+    formData.append('file', file);
+
+    fetch('/model_recommendation', { 
+        method: 'POST', 
+        body: formData 
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) return alert(data.error);
+        displayRecommendations(data.recommendations);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to upload file. Please try again.');
+    });
+}
+
+function displayRecommendations(recommendations) {
+    let container = document.getElementById('modelSelection');
+    container.innerHTML = '';
+    document.getElementById('recommendations').classList.remove('hidden');
+    
+    let sortedModels = Object.entries(recommendations)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+    sortedModels.forEach(([model, score]) => {
+        let modelBox = document.createElement('div');
+        modelBox.classList.add('model-box');
+        modelBox.onclick = () => selectModel(modelBox, model);
+        
+        let modelName = document.createElement('div');
+        modelName.classList.add('model-name');
+        modelName.innerText = `${model} (${(score * 100).toFixed(2)}%)`;
+        
+        let progressBarContainer = document.createElement('div');
+        progressBarContainer.classList.add('progress-bar-container');
+        
+        let progressBar = document.createElement('div');
+        progressBar.classList.add('progress-bar');
+        
+        let progress = document.createElement('div');
+        progress.classList.add('progress');
+        progress.style.width = `${score * 100}%`;
+        
+        progressBar.appendChild(progress);
+        progressBarContainer.appendChild(progressBar);
+        modelBox.appendChild(modelName);
+        modelBox.appendChild(progressBarContainer);
+        container.appendChild(modelBox);
+    });
+}
+
+function selectModel(element, model) {
+    document.querySelectorAll('.model-box').forEach(box => box.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedModel = model;
+}
+
+function generateCode() {
+    if (!selectedModel) return alert('Please select a model');
+
+    fetch('/generate-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            model: selectedModel,
+            hyperparameters: defaultHyperparameters[selectedModel]
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) return alert(data.error);
+        document.getElementById('generatedCode').innerText = data.generated_code;
+        document.getElementById('codeContainer').classList.remove('hidden');
+        loadHyperparameters(selectedModel);
+        updateCode();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to generate code. Please try again.');
+    });
+}
+
+function loadHyperparameters(model) {
+    let hyperparameterForm = document.getElementById('hyperparameterForm');
+    hyperparameterForm.innerHTML = '';
+
+    let hyperparams = defaultHyperparameters[model];
+    Object.entries(hyperparams).forEach(([key, value]) => {
+        let label = document.createElement('label');
+        label.innerText = key.replace(/_/g, ' ').toUpperCase();
+        let input = document.createElement('input');
+        
+        if (typeof value === 'boolean') {
+            input.type = 'checkbox';
+            input.checked = value;
+        } else if (typeof value === 'number') {
+            input.type = 'number';
+            input.value = value;
+        } else {
+            input.type = 'text';
+            input.value = value;
+        }
+
+        input.name = key;
+        hyperparameterForm.appendChild(label);
+        hyperparameterForm.appendChild(input);
+    });
+}
+
+function updateCode() {
+            if (!selectedModel) return alert('Please select a model first');
+            
+            let hyperparameters = {};
+            document.querySelectorAll('#hyperparameterForm input').forEach(input => {
+                let value = input.value;
+                if (value.toLowerCase() === 'null') {
+                    value = null;
+                } else if (!isNaN(value)) {
+                    value = parseFloat(value);
+                } else if (value === 'true' || value === 'false') {
+                    value = value === 'true';
+                }
+                hyperparameters[input.name] = value;
+            });
+
+            // Get custom prompt value
+            let customPrompt = document.getElementById('customPrompt').value.trim();
+
+            fetch('/generate-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    model: selectedModel, 
+                    hyperparameters,
+                    custom_prompt: customPrompt  // Add custom prompt to request
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) return alert(data.error);
+                document.getElementById('generatedCode').innerText = data.generated_code;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update code. Please check your inputs.');
+            });
+        }
+
+        // Modify generateCode function similarly
+        function generateCode() {
+            if (!selectedModel) return alert('Please select a model');
+
+            // Get custom prompt value
+            let customPrompt = document.getElementById('customPrompt').value.trim();
+
+            fetch('/generate-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    model: selectedModel,
+                    hyperparameters: defaultHyperparameters[selectedModel],
+                    custom_prompt: customPrompt  // Add custom prompt to request
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) return alert(data.error);
+                document.getElementById('generatedCode').innerText = data.generated_code;
+                document.getElementById('codeContainer').classList.remove('hidden');
+                loadHyperparameters(selectedModel);
+                updateCode();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to generate code. Please try again.');
+            });
+        }
+
+    fetch('/generate-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: selectedModel, hyperparameters })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) return alert(data.error);
+        document.getElementById('generatedCode').innerText = data.generated_code;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update code. Please check your inputs.');
+    });
+
+function copyCode() {
+    let code = document.getElementById('generatedCode').innerText;
+    navigator.clipboard.writeText(code)
+        .then(() => alert('Code copied to clipboard!'))
+        .catch(err => alert('Failed to copy code: ' + err));
+}
+    </script>
+</body>
+</html>
